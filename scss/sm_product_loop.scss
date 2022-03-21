@@ -1,0 +1,195 @@
+.sm_product-loop{
+
+    &--filter{
+
+        padding-bottom: 40px;
+
+        & ul{
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            list-style: none;
+                flex-wrap: wrap;
+        }
+
+        & li{
+            padding: 4px 16px;
+            font-family: var(--e-global-typography-primary-font-family)!important;
+            font-size: 12px;
+            font-weight: 600;
+            color: var( --e-global-color-84a42fc );
+            cursor: pointer;
+        }
+    }
+
+
+    &--grid_item{
+        width: 33%;
+
+        @media only screen and (max-width: 768px) {
+            & {
+                width: 50%;
+            }
+        }
+    }
+
+    &--article{
+        padding: 4px 4px 36px 4px;
+    }
+
+    &--images{
+        position: relative;
+        overflow: hidden;
+
+        & span,
+        & img.sm_image-one{
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+         & span{
+             z-index: 9;
+             padding: 4px 8px;
+             display: none;
+            font-family: var(--e-global-typography-primary-font-family)!important;
+             font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var( --e-global-color-6887061 );
+
+         }
+
+        & img{
+            display: block;
+            width: 100%;
+            height: 40vw;
+            object-fit: cover;
+            transition: all .6s;
+
+            @media only screen and (max-width: 768px) {
+            & {
+                height: 70vw;
+            }
+        }
+        }
+
+        &:hover{
+            
+            & img{
+                 transform: scale(1.1);
+             }
+            
+            & img.sm_image-one{
+                 opacity: 0;
+             }
+        }
+    }
+
+    &--article.outofstock &--badge-stock{
+        background: var( --e-global-color-cf2b210 );
+        display: block;
+    }
+
+    &--article.on_sale:not(.outofstock) &--badge-sale{
+        background: var( --e-global-color-ad3dfae );
+        display: block;
+    }
+
+    
+    &--buttons{
+        position: absolute;
+        bottom: -40px;
+        width: 100%;
+        // transform: translateY(40px);
+        transition: .3s;
+        background-color: var(--e-global-color-d89416c);
+        
+
+        &:hover{
+            background-color: var(--e-global-color-ad3dfae);
+        }
+        
+        & a{ 
+            display: inline-block;
+            width: 100%;
+            padding: 8px;
+            text-align: center;
+            font-family: var(--e-global-typography-primary-font-family)!important;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: 0.5px;
+            color: var( --e-global-color-befbcb6 ) !important;
+            display: none; //display block acording to stock status and type - see bellow
+
+            &:hover{
+                color: var( --e-global-color-befbcb6 ) !important;
+            }
+        }
+
+    }
+    
+    // Display buttons on Article (card) hover
+    &--article:hover &--buttons{
+        transform: translateY(-40px);
+    }
+    
+    // Display Add To Cart button if has instock (but not variable) and simple (but not outofstock) classes
+    &--article.instock:not(.variable) &--buttons a.add_to_cart_button,
+    &--article.simple:not(.outofstock) &--buttons a.add_to_cart_button{
+        display: block;
+    }
+    // Display Select Options button if has outofstock (Read More text with product link) and variable classes (Select Options text and product link)
+    &--article.outofstock &--buttons a.select_options_button,
+    &--article.variable &--buttons a.select_options_button{
+        display: block;
+    }
+
+
+
+
+    // Style
+
+    &--bottom{
+        text-align: center;
+    }
+
+    &--cat,
+    &--title,
+    &--price{
+        font-family: var(--e-global-typography-primary-font-family)!important;
+    }
+
+    &--cat{
+        margin: 10px 0px 6px 0px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.6px;
+        color: var(--e-global-color-cf2b210);
+    }
+
+    &--title{
+        font-size: 14px!important;
+        font-weight: 500!important;
+        text-transform: none;
+        letter-spacing: 0.4px!important;
+        line-height: 2!important;
+        margin: 0!important;
+        color: var( --e-global-color-84a42fc );
+    }
+
+    &--price{
+        font-size: 14px;
+        font-weight: 500;
+        font-style: normal;
+        letter-spacing: 0.4px;
+    }
+    @media (max-width: 768px) {
+        &--title,
+        &--price{
+            font-size: 12px!important;
+            line-height: 1.4!important;
+        }
+    }
+}
