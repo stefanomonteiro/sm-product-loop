@@ -1,3 +1,15 @@
+.sm_product-loop.sm_small-product .sm_product-loop--grid_item {
+  width: 50%;
+}
+
+.sm_product-loop:not(.sm_has-filter) .sm_product-loop--grid {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+}
+
 .sm_product-loop--filter {
   padding-bottom: 40px;
 }

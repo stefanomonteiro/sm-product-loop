@@ -1,5 +1,24 @@
 .sm_product-loop{
 
+    // Extra Classes
+    &.sm_small-product {
+
+        .sm_product-loop--grid_item{
+            width: 50%;
+        }
+        .sm_product-loop--images img{
+            // height: 300px;
+        }
+
+    }
+
+
+
+    &:not(.sm_has-filter) &--grid{
+        display: flex;
+        flex-wrap: wrap;
+    }
+
     &--filter{
 
         padding-bottom: 40px;

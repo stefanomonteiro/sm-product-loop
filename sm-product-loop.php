@@ -21,35 +21,66 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
     function add_sm_product_loop_shortcode($atts)
     {
 
-        $a = shortcode_atts(array(), $atts);
+        $a = shortcode_atts(array(
+            'extra_class'           => '',
+            'post__in'              => '',
+            'orderby'               => 'menu_order',
+            'order'                 =>  'ASC',
+            'posts_per_page'        => -1,
+            'product_cat'           => '',
+            'only_sale'             => false,
+            'hide_filter'           => false
+        ), $atts);
 
 
-        // Get The queried object if is Archive Page ( a WP_Term or a WP_Post Object)
-        $term = get_queried_object();
-        $category_filter = [];
-        // To be sure that is a WP_Term Object to avoid errors
-        if (is_a($term, 'WP_Term')) {
-            $terms_id = $term->term_id;
-            $category_filter = get_term_children($term->term_id, 'product_cat');
-        } else {
-            // If $term does not return the WP_Term Object (Main Porduct Archive Page) get all categories to pass on WP_Query below
-            $categories = get_categories(array(
-                'taxonomy'  => 'product_cat',
-                'parent' => 0
-            ));
-
-            $terms_id = [];
-            foreach ($categories as $category) {
-                array_push($terms_id, $category->term_id);
+        /* 
+        * ! Pass shortcode parameters to variables to be used in WP_Query
+        */
+        $post__in = [];
+        if ($a['post__in']) {
+            foreach (explode(',', $a['post__in']) as $post_id ) {
+                array_push($post__in, $post_id);
             }
-            $category_filter = $terms_id;
         }
 
+        // If category id is passed on, assigne them to $terms_id. 
+        // Else 
+        // Find if current loop (Object) is a term 
+        // and get its children or get all children
+        $terms_id = [];
+        $category_filter = [];
+        if ($a['product_cat']) {
+            foreach (explode(',', $a['product_cat']) as $term_id) {
+                array_push($terms_id, $term_id);
+                array_push($category_filter, $term_id);
+            }
+        } else{
+            // Get The queried object if is Archive Page (a WP_Term or a WP_Post Object)
+            $term = get_queried_object();
+            
+            // To be sure that is a WP_Term Object (Category page) - get the children of the category
+            if (is_a($term, 'WP_Term')) {
+                $terms_id = $term->term_id;
+                $category_filter = get_term_children($term->term_id, 'product_cat');
+            } else {
+                // If $term does not return the WP_Term Object (Main Product Archive Page) get all categories to pass on WP_Query below
+                $categories = get_categories(array(
+                    'taxonomy'  => 'product_cat',
+                    'parent' => 0
+                ));
+
+                foreach ($categories as $category) {
+                    array_push($terms_id, $category->term_id);
+                }
+                $category_filter = $terms_id;
+            }
+        }
 
         // ! Create Filter
         $product_filter = '';
         $product_filter_cats = '';
-        if ($category_filter) {
+        if ($category_filter && !$post__in && !$a['hide_filter']) {
+            $a['extra_class'] = 'sm_has-filter';
 
             foreach ($category_filter as $cat_id) {
 
@@ -70,11 +101,12 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
         // ! Create Product Grid
         // Setup custom query
         $args = array(
+            'post__in'              => $post__in,
             'post_type'             => 'product',
             'status'                => 'publish',
-            'orderby'               => 'menu_order',
-            'order'                 =>  'ASC',
-            'posts_per_page'        => -1,
+            'orderby'               => $a['menu_order'],
+            'order'                 =>  $a['ASC'],
+            'posts_per_page'        => $a['posts_per_page'],
             'tax_query'             => array(array(
                 'taxonomy' => 'product_cat', // The taxonomy name
                 'field'    => 'term_id', // Type of field ('term_id', 'slug', 'name' or 'term_taxonomy_id')
@@ -87,6 +119,7 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
         $products_items = '';
         foreach ($loop->posts as $post) {
             $product = wc_get_product($post->ID);
+            // More here: https://woocommerce.github.io/code-reference/classes/WC-Product.html
             // var_dump($post->ID);
             // var_dump($product->get_title());
             // var_dump($product->get_slug());
@@ -114,15 +147,10 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
             // Get Variable Products Price
             if ($product->get_type() == 'variable') {
 
-                // var_dump($product->get_title());
-                // var_dump($product->get_children());
-
                 foreach ($product->get_children() as $variable_id) {
                     $variable = wc_get_product($variable_id);
 
                     if ($variable->get_sale_price()) {
-                        //    var_dump($variable->get_regular_price());
-                        //    var_dump($variable->get_sale_price());
                         $is_on_sale = $variable->get_sale_price() ? 'on_sale' : '';
 
                         $sale_price = $variable->get_sale_price();
@@ -142,40 +170,44 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
                 $product_cats_string = $product_cats_string . str_replace(' ', '', $cat->name) . ' ';
             }
 
-
             // Get Second Image
             $second_image =  $product->get_gallery_image_ids()[0] ? wp_get_attachment_image($product->get_gallery_image_ids()[0], 'medium-large', false, ['class' => 'attachment-medium-large size-medium-large sm_image-two']) : wp_get_attachment_image($product->get_image_id(), 'medium-large', false, ['class' => 'attachment-medium-large size-medium-large sm_image-two']);
 
-            $products_items = $products_items . '
-                             <div class="sm_product-loop--grid_item ' . $product_cats_string . ' ">
-                                <article class="sm_product-loop--article ' . $product->get_type() . ' ' . $product->get_stock_status() . ' ' . $is_on_sale . '">
-                                    <div class="sm_product-loop--images">
-                                        <span class="sm_product-loop--badge-stock">Esgotado</span>
-                                        <span class="sm_product-loop--badge-sale">' . $sale_percentage . '% off</span>
-                                        <a href="/product/' . $product->get_slug() . '" class="sm_product-loop--link">
-                                            ' . $second_image . '
-                                            ' . wp_get_attachment_image($product->get_image_id(), 'medium-large', false, ['class' => 'attachment-medium-large size-medium-large sm_image-one']) . '
-                                        </a>
-                                        <div class="sm_product-loop--buttons">
-                                            <div class="sm_product-loop--add">
-                                                <a href="' . $product->add_to_cart_url() . '" class="add_to_cart_button ajax_add_to_cart" data-product_id="' . $post->ID . '">' . $product->add_to_cart_text() . '</a>
-                                                <a href="' . $product->add_to_cart_url() . '" class="select_options_button" data-product_id="' . $post->ID . '">' . $product->add_to_cart_text() . '</a>
+            if ($a['only_sale'] && !$is_on_sale) {
+                // var_dump($product->get_title());
+            } else{
+                $products_items = $products_items . '
+                                 <div class="sm_product-loop--grid_item ' . $product_cats_string . ' ">
+                                    <article class="sm_product-loop--article ' . $product->get_type() . ' ' . $product->get_stock_status() . ' ' . $is_on_sale . '">
+                                        <div class="sm_product-loop--images">
+                                            <span class="sm_product-loop--badge-stock">Esgotado</span>
+                                            <span class="sm_product-loop--badge-sale">' . $sale_percentage . '% off</span>
+                                            <a href="/product/' . $product->get_slug() . '" class="sm_product-loop--link">
+                                                ' . $second_image . '
+                                                ' . wp_get_attachment_image($product->get_image_id(), 'medium-large', false, ['class' => 'attachment-medium-large size-medium-large sm_image-one']) . '
+                                            </a>
+                                            <div class="sm_product-loop--buttons">
+                                                <div class="sm_product-loop--add">
+                                                    <a href="' . $product->add_to_cart_url() . '" class="add_to_cart_button ajax_add_to_cart" data-product_id="' . $post->ID . '">' . $product->add_to_cart_text() . '</a>
+                                                    <a href="' . $product->add_to_cart_url() . '" class="select_options_button" data-product_id="' . $post->ID . '">' . $product->add_to_cart_text() . '</a>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="sm_product-loop--bottom">
-                                        <h4 class="sm_product-loop--cat">' . $product_cats[1]->name . '</h4>
-                                        <h2 class="sm_product-loop--title"><a href="/product/' . $product->get_slug() . '">' . $product->get_title() . '</a></h2>
-                                        <div class="sm_product-loop--price">
-                                            ' . $product->get_price_html() . '
+                                        <div class="sm_product-loop--bottom">
+                                            <h4 class="sm_product-loop--cat">' . $product_cats[1]->name . '</h4>
+                                            <h2 class="sm_product-loop--title"><a href="/product/' . $product->get_slug() . '">' . $product->get_title() . '</a></h2>
+                                            <div class="sm_product-loop--price">
+                                                ' . $product->get_price_html() . '
+                                            </div>
                                         </div>
-                                    </div>
-                                </article>
-                            </div>';
+                                    </article>
+                                </div>';
+            }
+
         }
 
 
-        $html = '<div class="sm_product-loop">
+        $html = '<div class="sm_product-loop '. $a['extra_class'] .'">
                         <div class="sm_product-loop--filter">
                             ' . $product_filter . '
                         </div>

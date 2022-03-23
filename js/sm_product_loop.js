@@ -13,7 +13,7 @@ jQuery(function ($) {
 
 document.addEventListener('DOMContentLoaded', function () {
   //   ! Isotope
-  var elem = document.querySelector(".sm_product-loop--grid");
+  var elem = document.querySelector(".sm_product-loop.sm_has-filter .sm_product-loop--grid");
   var buttons = document.querySelectorAll(".sm_product-loop--filter li");
   
   var iso = new Isotope(elem, {
