@@ -1,6 +1,7 @@
 .sm_product-loop{
 
-    // Extra Classes
+    //! Extra Classes
+    // Small cards
     &.sm_small-product {
 
         .sm_product-loop--grid_item{
@@ -11,12 +12,52 @@
         }
 
     }
+    // Grid of Four
+    &.sm_product-grid-four {
+
+        .sm_product-loop--grid_item{
+            width: 25%;
+        }
+
+        .sm_product-loop--images img{
+            height: 100%;
+        }
+
+        @media only screen and (max-width: 768px) {
+            .sm_product-loop--grid_item{
+                width: 50%;
+            }
+        }
+    }
+
+
+    // Grid of Two
+    &.sm_product-grid-two {
+
+        .sm_product-loop--grid_item{
+            width: 50%;
+        }
+
+        .sm_product-loop--images img{
+            height: 100%;
+        }
+
+        .sm_product-loop--title{
+            font-size: 12px !important;
+            line-height: 1.2 !important;
+        }
+
+    }
 
 
 
     &:not(.sm_has-filter) &--grid{
         display: flex;
         flex-wrap: wrap;
+    }
+
+    &:not(.sm_has-filter) &--filter{
+        display: none;
     }
 
     &--filter{

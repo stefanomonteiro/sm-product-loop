@@ -29,7 +29,8 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
             'posts_per_page'        => -1,
             'product_cat'           => '',
             'only_sale'             => false,
-            'hide_filter'           => false
+            'hide_filter'           => false,
+            'debug'                 => false
         ), $atts);
 
 
@@ -97,6 +98,11 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
                                 </ul>';
         }
 
+        $search_query = '';
+        if (is_search()) {
+            $search_query = get_search_query();
+        }
+
 
         // ! Create Product Grid
         // Setup custom query
@@ -104,8 +110,10 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
             'post__in'              => $post__in,
             'post_type'             => 'product',
             'status'                => 'publish',
-            'orderby'               => $a['menu_order'],
-            'order'                 =>  $a['ASC'],
+            's'                     => $search_query,   
+            'perm'                  => 'readable',
+            'orderby'               => $a['orderby'],
+            'order'                 =>  $a['order'],
             'posts_per_page'        => $a['posts_per_page'],
             'tax_query'             => array(array(
                 'taxonomy' => 'product_cat', // The taxonomy name
@@ -120,23 +128,8 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
         foreach ($loop->posts as $post) {
             $product = wc_get_product($post->ID);
             // More here: https://woocommerce.github.io/code-reference/classes/WC-Product.html
-            // var_dump($post->ID);
-            // var_dump($product->get_title());
-            // var_dump($product->get_slug());
-            // var_dump($product->get_image());
-            // var_dump($product->get_image_id());
-            // var_dump($product->get_gallery_image_ids());
-            // var_dump($product->get_stock_status());
-            // var_dump($product->get_stock_quantity());
-            // var_dump($product->get_type());
-            // var_dump($product->get_children());
-            // var_dump($product->get_price());
-            // var_dump($product->get_regular_price());
-            // var_dump($product->get_sale_price());
-            // var_dump($product->add_to_cart_description());
 
-            // var_dump($product->get_price_html());
-            // var_dump(wp_get_post_terms($post->ID, 'product_cat')[0]->name);
+           
 
 
             // Check if product is On Sale
@@ -176,6 +169,28 @@ if (!function_exists('add_sm_product_loop_shortcode')) {
             if ($a['only_sale'] && !$is_on_sale) {
                 // var_dump($product->get_title());
             } else{
+
+                if ($a['debug']) {
+
+                    // var_dump($post->ID);
+                    // var_dump($product->get_title());
+                    // var_dump($product->get_slug());
+                    // var_dump($product->get_image());
+                    // var_dump($product->get_image_id());
+                    // var_dump($product->get_gallery_image_ids());
+                    // var_dump($product->get_stock_status());
+                    // var_dump($product->get_stock_quantity());
+                    // var_dump($product->get_type());
+                    // var_dump($product->get_children());
+                    // var_dump($product->get_price());
+                    // var_dump($product->get_regular_price());
+                    // var_dump($product->get_sale_price());
+                    // var_dump($product->add_to_cart_description());
+
+                    // var_dump($product->get_price_html());
+                    // var_dump(wp_get_post_terms($post->ID, 'product_cat')[0]->name);
+                }
+
                 $products_items = $products_items . '
                                  <div class="sm_product-loop--grid_item ' . $product_cats_string . ' ">
                                     <article class="sm_product-loop--article ' . $product->get_type() . ' ' . $product->get_stock_status() . ' ' . $is_on_sale . '">
@@ -232,9 +247,9 @@ add_shortcode('sm_product_loop', 'add_sm_product_loop_shortcode');
 
 // Register Scripts
 
-wp_register_style('sm_product_loop-css', plugin_dir_url(__FILE__) . 'css/sm_product_loop.css', [], time());
-wp_register_script('isotope-js', plugin_dir_url(__FILE__) . 'js/isotope.pkgd.min.js', [], time(), true);
-wp_register_script('sm_product_loop-js', plugin_dir_url(__FILE__) . 'js/sm_product_loop.js', ['isotope-js'], time(), true);
+wp_register_style('sm_product_loop-css', plugin_dir_url(__FILE__) . 'css/sm_product_loop.css', [], '1.0.0');
+wp_register_script('isotope-js', plugin_dir_url(__FILE__) . 'js/isotope.pkgd.min.js', [], '1.0.0', true);
+wp_register_script('sm_product_loop-js', plugin_dir_url(__FILE__) . 'js/sm_product_loop.js', ['isotope-js'], '1.0.0', true);
 
 // Enqueue Scripts Elementor Editor
 if (!function_exists('sm_product_loop_enqueue_styles_elementor_editor')) {
@@ -262,43 +277,3 @@ add_action('elementor/preview/enqueue_styles', 'sm_product_loop_enqueue_styles_e
 add_action('elementor/preview/enqueue_scripts', 'sm_product_loop_enqueue_scripts_elementor_editor');
 
 
-
-
-/* 
-* Ajax Add To Cart
-*/
-// 
-// add_action('wp_ajax_woocommerce_ajax_add_to_cart', 'woocommerce_ajax_add_to_cart');
-// add_action('wp_ajax_nopriv_woocommerce_ajax_add_to_cart', 'woocommerce_ajax_add_to_cart');
-// function woocommerce_ajax_add_to_cart()
-// {
-
-//     // More info here: https://quadmenu.com/add-to-cart-with-woocommerce-and-ajax-step-by-step/
-
-//     $product_id = apply_filters('woocommerce_add_to_cart_product_id', absint($_POST['product_id']));
-//     $quantity = empty($_POST['quantity']) ? 1 : wc_stock_amount($_POST['quantity']);
-//     // $variation_id = absint($_POST['variation_id']);
-//     $passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity);
-//     $product_status = get_post_status($product_id);
-
-//     if ($passed_validation && WC()->cart->add_to_cart($product_id, $quantity) && 'publish' === $product_status) {
-
-//         do_action('woocommerce_ajax_added_to_cart', $product_id);
-
-//         if ('yes' === get_option('woocommerce_cart_redirect_after_add')) {
-//             wc_add_to_cart_message(array($product_id => $quantity), true);
-//         }
-
-//         WC_AJAX::get_refreshed_fragments();
-//     } else {
-
-//         $data = array(
-//             'error' => true,
-//             'product_url' => apply_filters('woocommerce_cart_redirect_after_error', get_permalink($product_id), $product_id)
-//         );
-
-//         echo wp_send_json($data);
-//     }
-
-//     wp_die();
-// }
